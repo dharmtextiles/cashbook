@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14231D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Cash Book</title>
+<style>
+:root{--bg:#F2F5F3;--surf:#fff;--ink:#14231D;--mut:#5E6E66;--line:#D9E1DC;--in:#1B7A4B;--out:#B3362B;--hero:#14231D;--herotx:#F2F5F3;--btn:#fff;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+@media (prefers-color-scheme:dark){:root{--bg:#0E1613;--surf:#17231E;--ink:#E8EFEB;--mut:#8FA298;--line:#2A3A33;--in:#4CC088;--out:#F07A6D;--hero:#1D2F27;--btn:#0E1613}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.num{font-variant-numeric:tabular-nums}
+main{max-width:1040px;margin:0 auto;padding:12px 14px 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 2px 12px}
+header h1{font-size:20px;margin:0}.mo{font-size:13px;color:var(--mut)}
+nav,.seg,.tools{display:flex;gap:8px}nav{margin-bottom:12px}.seg{margin-bottom:10px}.tools{flex-wrap:wrap;margin-top:12px}
+.hero{background:var(--hero);color:var(--herotx);border-radius:18px;padding:18px}
+.hero small{opacity:.7;display:block}.hero .cash{font-size:34px;font-weight:700}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.pair div{background:rgba(255,255,255,.08);border-radius:12px;padding:10px 12px}.pair b{display:block;font-size:18px}
+.in{color:var(--in)}.out{color:var(--out)}.hero .in{color:#6EE0A8}.hero .out{color:#FF9F94}
+section{background:var(--surf);border:1px solid var(--line);border-radius:16px;margin-top:16px;padding:14px}
+h2{font-size:17px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline}h2 span{font-size:13px;font-weight:600}
+form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.full{grid-column:1/-1}
+@media (min-width:700px){form{align-items:end}#fIn{grid-template-columns:150px 140px 1fr auto}#fOut{grid-template-columns:1.2fr 1fr 120px 150px 1.2fr auto}#fW{grid-template-columns:1.2fr 1fr 1fr 120px 1fr auto}form .full{grid-column:auto}}
+label{font-size:12px;color:var(--mut);display:block;margin-bottom:2px}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:44px}
+input:focus,button:focus-visible{outline:2px solid var(--in);outline-offset:1px}
+button{font:inherit;border:0;border-radius:10px;padding:10px 14px;min-height:44px;cursor:pointer;font-weight:600;color:var(--btn)}
+.b-in{background:var(--in)}.b-out{background:var(--out)}
+.b-g,.seg button,nav button{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.b-g{font-weight:500;min-height:36px;padding:6px 10px}
+.seg button,nav button{flex:1}.seg button.on,nav button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#sync.bad{color:var(--out);border-color:var(--out)}
+.sw{position:relative}
+.sug{position:absolute;left:0;right:0;top:100%;z-index:5;background:var(--surf);border:1px solid var(--line);border-radius:10px;margin-top:2px;box-shadow:0 6px 20px rgba(0,0,0,.18);max-height:200px;overflow:auto}
+.sug div{padding:10px 12px;display:flex;justify-content:space-between;gap:8px;cursor:pointer}.sug div.on,.sug div:hover{background:var(--bg)}.sug i{font-style:normal;color:var(--mut);font-size:13px}
+.wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;color:var(--mut);padding:6px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}.r{text-align:right}
+.x,.xp{background:none;color:var(--mut);padding:0 6px;min-height:32px;font-size:18px}
+.empty{color:var(--mut);padding:14px 4px;text-align:center}
+.rf{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px}#rR,#rP{display:contents}
+.rs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}.rs div{flex:1;min-width:110px;background:var(--bg);border-radius:12px;padding:10px 12px;color:var(--mut);font-size:13px}.rs b{display:block;font-size:18px;color:var(--ink)}
+.lim{max-height:205px;overflow-y:auto;-webkit-overflow-scrolling:touch}.lim th{position:sticky;top:0;background:var(--surf);box-shadow:inset 0 -1px var(--line);border-bottom:0;z-index:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.chip{min-height:32px;padding:4px 12px;font-size:13px;font-weight:500;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:16px}.chip.on{background:var(--out);color:var(--btn);border-color:var(--out)}
+nav button{padding:10px 4px;font-size:13px}.mini{width:84px;min-height:34px;padding:4px 6px}.mini.d{width:130px}.up{display:flex;align-items:center;gap:4px;margin-bottom:4px;white-space:nowrap}.pgt td{white-space:nowrap}
+tr.cl{cursor:pointer}tfoot td{font-weight:700;border-bottom:0}
+</style>
+</head>
+<body>
+<main>
+<header><h1>Cash Book</h1><span><button id="sync" class="b-g">Local only</button> <span class="mo" id="mo"></span></span></header>
+<nav><button id="nB" class="on">Cash book</button><button id="nP">Pagar patrak</button><button id="nW">Work list</button><button id="nR">Report</button></nav>
+
+<div id="vBook">
+<div class="hero">
+  <small>Cash on hand (received − paid)</small><div class="cash num" id="cash">₹0</div>
+  <div class="pair"><div><small>Received this month</small><b class="in num" id="mIn">₹0</b></div><div><small>Paid this month</small><b class="out num" id="mOut">₹0</b></div></div>
+</div>
+<section>
+  <h2>Money paid <span class="out num" id="tOut"></span></h2>
+  <form id="fOut">
+    <div class="full sw"><label for="opName">Operator name</label><input id="opName" autocomplete="off" required placeholder="Start typing a name"><div class="sug" id="sug" hidden></div></div>
+    <div class="full"><label for="opDept">Department</label><input id="opDept" autocomplete="off" placeholder="Optional"></div>
+    <div><label for="outAmt">Amount (₹)</label><input type="number" id="outAmt" inputmode="decimal" min="0.01" step="0.01" required></div>
+    <div><label for="outDate">Date</label><input type="date" id="outDate" required></div>
+    <div class="full"><label for="outDet">Detail</label><input id="outDet" autocomplete="off" placeholder="What was it for"><div class="chips"><button type="button" class="chip" data-t="Advance">Advance</button><button type="button" class="chip" data-t="Salary Total Complete">Salary Total Complete</button></div></div>
+    <button class="b-out full" type="submit" id="btnOut">Add paid</button><button class="b-g full" type="button" id="cOut" hidden>Cancel</button>
+  </form>
+  <div class="wrap lim"><table><thead><tr><th>Name</th><th>Dept</th><th class="r">₹</th><th>Date</th><th>Detail</th><th></th></tr></thead><tbody id="bOut"></tbody></table></div>
+</section>
+<section>
+  <h2>Money received <span class="in num" id="tIn"></span></h2>
+  <form id="fIn">
+    <div><label for="inDate">Date</label><input type="date" id="inDate" required></div>
+    <div><label for="inAmt">Amount (₹)</label><input type="number" id="inAmt" inputmode="decimal" min="0.01" step="0.01" required></div>
+    <div class="full"><label for="inDet">Detail</label><input id="inDet" autocomplete="off" placeholder="From whom or why"></div>
+    <button class="b-in full" type="submit" id="btnIn">Add received</button><button class="b-g full" type="button" id="cIn" hidden>Cancel</button>
+  </form>
+  <div class="wrap lim"><table><thead><tr><th>Date</th><th class="r">₹</th><th>Detail</th><th></th></tr></thead><tbody id="bIn"></tbody></table></div>
+</section>
+<section>
+  <h2>Operators <span class="num" id="cOp" style="color:var(--mut)"></span></h2>
+  <div class="wrap"><table><thead><tr><th>Name</th><th>Department</th><th></th></tr></thead><tbody id="bOp"></tbody></table></div>
+  <div class="empty" style="font-size:13px">A name is added here when you tap Advance or add a payment with a department, and removed when you tap Salary Total Complete.</div>
+</section>
+<div class="tools"><label class="b-g" style="cursor:pointer;display:inline-block;margin:0;padding:8px 10px">Import backup from the old app<input type="file" id="imp" accept=".json" hidden></label></div>
+</div>
+
+<div id="vRep" hidden>
+<section>
+  <h2>Report</h2>
+  <div class="seg" id="rType"><button data-v="inw" class="on">Received</button><button data-v="out">Paid</button></div>
+  <div class="seg" id="rMode"><button data-v="m" class="on">Monthly</button><button data-v="r">Between dates</button></div>
+  <div class="rf">
+    <div id="rM"><label for="rMo">Month</label><input type="month" id="rMo"></div>
+    <div id="rR" hidden><div><label for="rF">From date</label><input type="date" id="rF"></div><div><label for="rTo">To date</label><input type="date" id="rTo"></div></div>
+    <div id="rP" hidden><div><label for="rN">Operator name</label><input id="rN" list="dlN" autocomplete="off" placeholder="All names"></div><div><label for="rD">Department</label><input id="rD" list="dlD" autocomplete="off" placeholder="All departments"></div><datalist id="dlN"></datalist><datalist id="dlD"></datalist></div>
+    <div><label for="rQ">Search</label><input id="rQ" autocomplete="off" placeholder="Name, department or detail"></div>
+  </div>
+  <div class="rs"><div id="rLab">Total received<b class="num" id="rTot"></b></div><div>Entries<b class="num" id="rCnt"></b></div></div>
+  <div class="wrap"><table id="rTbl"></table></div>
+  <div class="tools"><button class="b-g" id="rCsv">Export this report (CSV)</button></div>
+</section>
+<section>
+  <h2>Month by month <span style="color:var(--mut)">Tap a month to open it</span></h2>
+  <div class="wrap"><table><thead><tr><th>Month</th><th class="r">Entries</th><th class="r">Total</th></tr></thead><tbody id="rMon"></tbody></table></div>
+</section>
+</div>
+<div id="vPag" hidden>
+<section>
+  <h2>Pagar patrak</h2>
+  <div class="seg" id="pMode"><button data-v="month" class="on">Monthly paid</button><button data-v="half">Half-month paid</button></div>
+  <div class="rf">
+    <div><label for="pMo">Month</label><input type="month" id="pMo"></div>
+    <div id="pH" hidden><label for="pHalf">Half</label><select id="pHalf"><option value="1">1st half (1–15)</option><option value="2">2nd half (16–end)</option></select></div>
+  </div>
+  <div class="rs"><div>Total Pagar<b class="num" id="pT1"></b></div><div>Total Khot<b class="num" id="pT2"></b></div><div>Total Upad<b class="num out" id="pT3"></b></div><div>Total Paid<b class="num in" id="pT4"></b></div></div>
+  <div class="wrap"><table id="pTbl" class="pgt"></table></div>
+  <div class="empty" style="font-size:13px;text-align:left">Payable = Total − Total Upad + Khot. Every payment you add in the Cash book for a person in the Work list appears here as Upad. After you tick Paid, that period is locked and new payments go to the next period.</div>
+</section>
+</div>
+
+<div id="vWork" hidden>
+<section>
+  <h2>Work list <span class="num" id="wCnt" style="color:var(--mut)"></span></h2>
+  <form id="fW">
+    <div class="full"><label for="wName">Name</label><input id="wName" list="dlW" autocomplete="off" required></div>
+    <div><label for="wDept">Department</label><input id="wDept" autocomplete="off"></div>
+    <div><label for="wType">Salary by</label><select id="wType"><option value="day">Per day</option><option value="meter">Per meter</option><option value="month">Monthly</option></select></div>
+    <div><label for="wRate">Rate or amount (₹)</label><input id="wRate" type="number" inputmode="decimal" min="0" step="any" required></div>
+    <div><label for="wCyc">Paid</label><select id="wCyc"><option value="month">Monthly</option><option value="half">Half month</option></select></div>
+    <button class="b-in full" type="submit" id="btnW">Add person</button><button class="b-g full" type="button" id="cW" hidden>Cancel</button>
+    <datalist id="dlW"></datalist>
+  </form>
+  <div class="wrap"><table><thead><tr><th>Name</th><th>Department</th><th>Salary</th><th>Paid</th><th></th></tr></thead><tbody id="bW"></tbody></table></div>
+</section>
+</div>
+</main>
+
+<script>
+/* 59843044847-77f47crhl5ni4udqif4cjdll5bsj7ea9.apps.googleusercontent.com */
+const CLIENT_ID="59843044847-77f47crhl5ni4udqif4cjdll5bsj7ea9.apps.googleusercontent.com";
+/* 59843044847-77f47crhl5ni4udqif4cjdll5bsj7ea9.apps.googleusercontent.com */
+const FILE="cashbook.json",KEY="cb.v2",SCOPE="https://www.googleapis.com/auth/drive.appdata",C=["inw","out","ops","ppl","pay"];
+const $=id=>document.getElementById(id);
+let S={inw:[],out:[],ops:[],ppl:[],pay:[],fid:null};
+try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
+C.forEach(c=>S[c]=S[c]||[]);
+const live=c=>S[c].filter(x=>!x.d);
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const fmt=n=>"₹"+Number(n).toLocaleString("en-IN",{maximumFractionDigits:2});
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const dmy=s=>{const p=s.split("-");return p[2]+"/"+p[1]+"/"+p[0].slice(2)};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const oid=o=>{const s=(o.name+"|"+(o.dept||"")).toLowerCase();let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return "o"+(h>>>0).toString(36)+s.length};
+const mlabel=k=>new Date(k+"-01T00:00:00").toLocaleString("en-IN",{month:"long",year:"numeric"});
+S.ops.forEach(o=>{o.id=o.id||oid(o)});
+
+/* ---------- data changes ---------- */
+function put(c,o){o.u=Date.now();const i=S[c].findIndex(x=>x.id===o.id);i<0?S[c].push(o):S[c][i]=o;changed()}
+function rem(c,id){const o=S[c].find(x=>x.id===id);if(o){o.d=1;o.u=Date.now();changed()}}
+function changed(){save();render();schedule()}
+
+/* ---------- Google Drive sync (hidden app folder, file cashbook.json) ---------- */
+let tok=null,tc=null,busy=false,again=false,timer=null,rt=null;
+function pill(t,bad){const b=$("sync");b.textContent=t;b.classList.toggle("bad",!!bad)}
+async function api(url,opt){
+  opt=opt||{};opt.headers=Object.assign({Authorization:"Bearer "+tok},opt.headers||{});
+  const r=await fetch(url,opt);
+  if(r.status===401){tok=null;throw new Error("auth")}
+  if(!r.ok)throw new Error("http"+r.status);
+  return r;
+}
+function merge(r){
+  C.forEach(c=>{const m=new Map(S[c].map(x=>[x.id,x]));
+    (r[c]||[]).forEach(x=>{const l=m.get(x.id);if(!l||(x.u||0)>(l.u||0))m.set(x.id,x)});
+    S[c]=[...m.values()].filter(x=>!(x.d&&Date.now()-x.u>5184e6))});
+}
+const differs=r=>C.some(c=>{const m=new Map((r[c]||[]).map(x=>[x.id,x]));return S[c].some(x=>{const y=m.get(x.id);return !y||(x.u||0)>(y.u||0)})});
+async function sync(){
+  if(!tok||busy)return;busy=true;pill("Syncing…");
+  try{
+    let id=S.fid,r={};
+    if(!id){const j=await(await api("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&orderBy=createdTime&fields=files(id)&q="+encodeURIComponent("name='"+FILE+"'"))).json();id=j.files[0]&&j.files[0].id}
+    if(id){try{r=await(await api("https://www.googleapis.com/drive/v3/files/"+id+"?alt=media")).json()}catch(e){if(e.message==="http404")id=null;else throw e}}
+    merge(r);
+    if(!id||differs(r)){
+      const body=JSON.stringify(Object.fromEntries(C.map(c=>[c,S[c]])));
+      if(id)await api("https://www.googleapis.com/upload/drive/v3/files/"+id+"?uploadType=media",{method:"PATCH",headers:{"Content-Type":"application/json"},body});
+      else{const b="cb"+Date.now();
+        id=(await(await api("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",{method:"POST",headers:{"Content-Type":"multipart/related; boundary="+b},body:"--"+b+"\r\nContent-Type: application/json\r\n\r\n"+JSON.stringify({name:FILE,parents:["appDataFolder"]})+"\r\n--"+b+"\r\nContent-Type: application/json\r\n\r\n"+body+"\r\n--"+b+"--"})).json()).id}
+    }
+    S.fid=id;save();render();pill("● Synced");
+  }catch(e){
+    if(e.message==="auth"){pill("Tap anywhere to reconnect",1);auth(true)}else pill("Offline, will retry",1)
+  }
+  busy=false;if(again){again=false;sync()}
+}
+function schedule(){clearTimeout(timer);timer=setTimeout(()=>busy?again=true:sync(),1500)}
+function auth(silent){if(tc)tc.requestAccessToken({prompt:silent?"none":""})}
+function gsiReady(){
+  if(CLIENT_ID.startsWith("PASTE")){pill("Local only: add CLIENT_ID",1);return}
+  tc=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPE,
+    callback:r=>{
+      if(r.error){pill("Sign in with Google",1);return}
+      tok=r.access_token;try{localStorage.setItem("cb.in","1")}catch(e){}
+      clearTimeout(rt);rt=setTimeout(()=>auth(true),Math.max(60,(r.expires_in||3600)-180)*1000);sync();
+    },
+    error_callback:()=>pill("Sign in with Google",1)});
+  pill("Sign in with Google");
+  if(localStorage.getItem("cb.in")==="1")auth(true);
+}
+$("sync").onclick=()=>{if(tc)auth(false);else alert("Google sync isn’t set up yet. Paste your Client ID into index.html, then reload.")};
+setInterval(()=>{if(tok&&!document.hidden)sync()},30000);
+let tryAt=0;
+document.addEventListener("pointerdown",()=>{
+  if(tok||!tc||localStorage.getItem("cb.in")!=="1"||Date.now()-tryAt<20000)return;
+  tryAt=Date.now();auth(false);
+},{passive:true});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){tok?sync():(tc&&localStorage.getItem("cb.in")==="1"&&auth(true))}});
+
+/* ---------- cash book screen ---------- */
+function render(){
+  const mon=today().slice(0,7);let ti=0,to=0,mi=0,mo=0;
+  live("inw").forEach(r=>{ti+=r.amt;if(r.date.slice(0,7)===mon)mi+=r.amt});
+  live("out").forEach(r=>{to+=r.amt;if(r.date.slice(0,7)===mon)mo+=r.amt});
+  $("cash").textContent=fmt(ti-to);$("cash").style.color=ti-to<0?"#FF9F94":"";
+  $("mIn").textContent=fmt(mi);$("mOut").textContent=fmt(mo);
+  $("tIn").textContent="Total "+fmt(ti);$("tOut").textContent="Total "+fmt(to);
+  $("mo").textContent=mlabel(mon);
+  const srt=(a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id),xb=(c,id)=>"<td style='white-space:nowrap'>"+(c==="ops"?"":"<button class='x' data-ed='1' data-c='"+c+"' data-id='"+id+"' aria-label='Edit'>✎</button>")+"<button class='x' data-c='"+c+"' data-id='"+id+"' aria-label='Delete'>×</button></td>";
+  const a=live("inw").sort(srt),b=live("out").sort(srt),o=live("ops").sort((x,y)=>x.name.localeCompare(y.name)||(x.dept||"").localeCompare(y.dept||""));
+  $("bIn").innerHTML=a.length?a.map(r=>"<tr><td>"+dmy(r.date)+"</td><td class='r num in'>"+fmt(r.amt)+"</td><td>"+esc(r.det)+"</td>"+xb("inw",r.id)+"</tr>").join(""):"<tr><td colspan='4' class='empty'>No cash received yet. Add the first entry above.</td></tr>";
+  $("bOut").innerHTML=b.length?b.map(r=>"<tr><td>"+esc(r.name)+"</td><td>"+esc(r.dept)+"</td><td class='r num out'>"+fmt(r.amt)+"</td><td>"+dmy(r.date)+"</td><td>"+esc(r.det)+"</td>"+xb("out",r.id)+"</tr>").join(""):"<tr><td colspan='6' class='empty'>No payments yet. Add the first entry above.</td></tr>";
+  $("cOp").textContent=o.length+" saved";
+  $("bOp").innerHTML=o.length?o.map(r=>"<tr><td>"+esc(r.name)+"</td><td>"+esc(r.dept)+"</td>"+xb("ops",r.id)+"</tr>").join(""):"<tr><td colspan='3' class='empty'>No operators saved yet.</td></tr>";
+  if(!$("vRep").hidden)repRender();
+  if(!$("vPag").hidden)pagRender();
+  if(!$("vWork").hidden)workRender();
+}
+document.addEventListener("click",e=>{const t=e.target.closest("button.x");if(!t)return;
+  if(t.dataset.ed){edit(t.dataset.c,t.dataset.id);return}
+  const en=t.dataset.c==="out"&&S.out.find(x=>x.id===t.dataset.id);if(en&&locked(en)){alert(LOCKMSG);return}
+  if(confirm("Delete this entry?"))rem(t.dataset.c,t.dataset.id)});
+$("inDate").value=$("outDate").value=today();
+$("fIn").onsubmit=e=>{e.preventDefault();const amt=parseFloat($("inAmt").value);if(!(amt>0))return;
+  put("inw",{id:eIn||uid(),date:$("inDate").value,amt,det:$("inDet").value.trim()});endIn(!!eIn)};
+const TAGS=["Advance","Salary Total Complete"];
+const tagOf=d=>TAGS.find(t=>(d||"").toLowerCase().startsWith(t.toLowerCase()))||"";
+let eIn=null,eOut=null;
+function endIn(ed){eIn=null;$("btnIn").textContent="Add received";$("cIn").hidden=true;$("inAmt").value=$("inDet").value="";if(ed)$("inDate").value=today()}
+function endOut(ed){eOut=null;$("btnOut").textContent="Add paid";$("cOut").hidden=true;nm.value=dp.value=$("outAmt").value=$("outDet").value="";if(ed)$("outDate").value=today();chips();nm.focus()}
+function chips(){const t=tagOf($("outDet").value);document.querySelectorAll(".chip").forEach(b=>b.classList.toggle("on",b.dataset.t===t))}
+function edit(c,id){const r=S[c].find(x=>x.id===id);if(!r)return;
+  if(c==="out"&&locked(r)){alert(LOCKMSG);return}
+  if(c==="inw"){eIn=id;$("inDate").value=r.date;$("inAmt").value=r.amt;$("inDet").value=r.det||"";$("btnIn").textContent="Save changes";$("cIn").hidden=false;$("fIn").scrollIntoView({block:"center"})}
+  else{eOut=id;nm.value=r.name;dp.value=r.dept||"";$("outAmt").value=r.amt;$("outDate").value=r.date;$("outDet").value=r.det||"";$("btnOut").textContent="Save changes";$("cOut").hidden=false;chips();sug.hidden=true;$("fOut").scrollIntoView({block:"center"})}}
+document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{const t=b.dataset.t,cur=tagOf($("outDet").value);let rest=$("outDet").value.trim();if(cur)rest=rest.slice(cur.length).replace(/^\s*-\s*/,"");$("outDet").value=t!==cur?t+(rest?" - "+rest:""):rest;chips()});
+$("outDet").addEventListener("input",chips);
+$("cIn").onclick=()=>endIn(true);$("cOut").onclick=()=>endOut(true);
+
+const sug=$("sug"),nm=$("opName"),dp=$("opDept");let hi=-1,list=[];
+function showSug(){
+  const q=nm.value.trim().toLowerCase();
+  list=known().filter(o=>q&&o.name.toLowerCase().includes(q)).slice(0,6);
+  if(!list.length||(list.length===1&&list[0].name.toLowerCase()===q&&(list[0].dept||"").toLowerCase()===dp.value.trim().toLowerCase())){sug.hidden=true;return}
+  hi=-1;sug.hidden=false;sug.innerHTML=list.map((o,i)=>"<div data-i='"+i+"'>"+esc(o.name)+"<i>"+esc(o.dept)+"</i></div>").join("");
+}
+const pick=i=>{const o=list[i];if(!o)return;nm.value=o.name;dp.value=o.dept||"";sug.hidden=true;$("outAmt").focus()};
+nm.oninput=()=>{const ms=known().filter(o=>o.name.toLowerCase()===nm.value.trim().toLowerCase());if(ms.length===1)dp.value=ms[0].dept||"";showSug()};
+nm.onkeydown=e=>{if(sug.hidden)return;const n=sug.children.length;
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();hi=(hi+(e.key==="ArrowDown"?1:-1)+n)%n;[...sug.children].forEach((c,i)=>c.classList.toggle("on",i===hi))}
+  else if(e.key==="Enter"&&hi>-1){e.preventDefault();pick(hi)}else if(e.key==="Escape")sug.hidden=true};
+sug.onmousedown=e=>{e.preventDefault();const d=e.target.closest("div[data-i]");if(d)pick(+d.dataset.i)};
+sug.ontouchstart=e=>{const d=e.target.closest("div[data-i]");if(d){e.preventDefault();pick(+d.dataset.i)}};
+nm.onblur=()=>setTimeout(()=>sug.hidden=true,150);
+$("fOut").onsubmit=e=>{e.preventDefault();
+  let name=nm.value.trim(),dept=dp.value.trim();const amt=parseFloat($("outAmt").value);if(!name||!(amt>0))return;
+  const det=$("outDet").value.trim(),tag=tagOf(det),old=eOut&&S.out.find(x=>x.id===eOut),fresh=tag&&(!old||tagOf(old.det)!==tag),ln=name.toLowerCase(),ld=dept.toLowerCase();
+  if(tag==="Salary Total Complete"){
+    if(fresh)live("ops").filter(o=>o.name.toLowerCase()===ln&&(!ld||(o.dept||"").toLowerCase()===ld)).forEach(o=>rem("ops",o.id));
+  }else if(dept||tag==="Advance"){
+    const m=live("ops").find(o=>o.name.toLowerCase()===ln&&(!ld||(o.dept||"").toLowerCase()===ld));
+    if(m){name=m.name;if(ld)dept=m.dept||""}else{const po={name,dept};po.id=oid(po);put("ops",po)}}
+  const ent={id:eOut||uid(),name,dept,amt,date:$("outDate").value,det},pp=findPerson(name,dept);
+  if(tag==="Salary Total Complete"&&pp){ent.pid=pp.id;ent.pk=openPk(pp,ent.date)}else assign(ent);
+  put("out",ent);
+  if(tag==="Salary Total Complete"&&fresh&&ent.pid)put("pay",Object.assign(payGet(ent.pid,ent.pk),{paid:true,pd:ent.date}));
+  endOut(!!eOut)};
+$("imp").onchange=e=>{const f=e.target.files[0];if(!f)return;
+  f.text().then(t=>{try{const d=JSON.parse(t);
+    C.forEach(c=>(d[c]||[]).forEach(x=>{if(c==="ops")x.id=x.id||oid(x);if(x.id&&!S[c].some(y=>y.id===x.id)){x.u=Date.now();S[c].push(x)}}));changed()
+  }catch(_){alert("That file isn’t a valid backup.")}});e.target.value=""};
+
+/* ---------- report screen ---------- */
+let rT="inw",rMd="m";
+const mark=(id,v)=>[...$(id).children].forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+const rv=id=>$(id).value.trim().toLowerCase();
+function rows(){
+  const f=$("rF").value,t=$("rTo").value,mo=$("rMo").value,q=rv("rQ"),n=rv("rN"),d=rv("rD"),known=live("ops").some(o=>(o.dept||"").toLowerCase()===d);
+  return live(rT).filter(r=>{
+    if(rMd==="m"?r.date.slice(0,7)!==mo:((f&&r.date<f)||(t&&r.date>t)))return false;
+    if(rT==="out"){
+      if(n&&!(r.name||"").toLowerCase().includes(n))return false;
+      const rd=(r.dept||"").toLowerCase();if(d&&(known?rd!==d:!rd.includes(d)))return false}
+    return !q||((r.name||"")+" "+(r.dept||"")+" "+(r.det||"")).toLowerCase().includes(q)
+  }).sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
+}
+function repRender(){
+  const rs=rows(),cls=rT==="inw"?"in":"out",tot=rs.reduce((s,r)=>s+r.amt,0),isIn=rT==="inw";
+  $("rP").hidden=isIn;
+  const ns=new Set(),ds=new Set();[...live("ops"),...live("out")].forEach(o=>{if(o.name)ns.add(o.name);if(o.dept)ds.add(o.dept)});
+  $("dlN").innerHTML=[...ns].sort().map(x=>"<option value='"+esc(x)+"'>").join("");$("dlD").innerHTML=[...ds].sort().map(x=>"<option value='"+esc(x)+"'>").join("");
+  $("rTot").textContent=fmt(tot);$("rTot").className="num "+cls;$("rCnt").textContent=rs.length;$("rLab").firstChild.nodeValue=isIn?"Total received":"Total paid";
+  const head=isIn?"<tr><th>Date</th><th class='r'>₹</th><th>Detail</th></tr>":"<tr><th>Date</th><th>Name</th><th>Dept</th><th class='r'>₹</th><th>Detail</th></tr>";
+  const body=rs.map(r=>isIn?"<tr><td>"+dmy(r.date)+"</td><td class='r num in'>"+fmt(r.amt)+"</td><td>"+esc(r.det)+"</td></tr>":"<tr><td>"+dmy(r.date)+"</td><td>"+esc(r.name)+"</td><td>"+esc(r.dept)+"</td><td class='r num out'>"+fmt(r.amt)+"</td><td>"+esc(r.det)+"</td></tr>").join("");
+  const foot=rs.length?(isIn?"<tfoot><tr><td>Total</td><td class='r num in'>"+fmt(tot)+"</td><td></td></tr></tfoot>":"<tfoot><tr><td colspan='3'>Total</td><td class='r num out'>"+fmt(tot)+"</td><td></td></tr></tfoot>"):"";
+  $("rTbl").innerHTML="<thead>"+head+"</thead><tbody>"+(body||"<tr><td colspan='5' class='empty'>No entries for this period.</td></tr>")+"</tbody>"+foot;
+  const g={};live(rT).forEach(r=>{const k=r.date.slice(0,7);g[k]=g[k]||{t:0,c:0};g[k].t+=r.amt;g[k].c++});
+  const ks=Object.keys(g).sort().reverse();
+  $("rMon").innerHTML=ks.length?ks.map(k=>"<tr class='cl' data-m='"+k+"'><td>"+mlabel(k)+"</td><td class='r num'>"+g[k].c+"</td><td class='r num "+cls+"'>"+fmt(g[k].t)+"</td></tr>").join(""):"<tr><td colspan='3' class='empty'>No entries yet.</td></tr>";
+}
+function setMode(m){rMd=m;$("rM").hidden=m!=="m";$("rR").hidden=m!=="r";mark("rMode",m);repRender()}
+function view(v){const m={b:"Book",r:"Rep",p:"Pag",w:"Work"};for(const k in m){$("v"+m[k]).hidden=k!==v;$("n"+k.toUpperCase()).classList.toggle("on",k===v)}if(v==="r")repRender();if(v==="p")pagRender();if(v==="w")workRender();scrollTo(0,0)}
+$("nB").onclick=()=>view("b");$("nR").onclick=()=>view("r");$("nP").onclick=()=>view("p");$("nW").onclick=()=>view("w");
+$("rMo").value=today().slice(0,7);$("rF").value=today().slice(0,7)+"-01";$("rTo").value=today();
+$("rType").onclick=e=>{const b=e.target.closest("button");if(b){rT=b.dataset.v;mark("rType",rT);repRender()}};
+$("rMode").onclick=e=>{const b=e.target.closest("button");if(b)setMode(b.dataset.v)};
+["rMo","rF","rTo","rQ","rN","rD"].forEach(id=>$(id).addEventListener("input",repRender));
+$("rMon").onclick=e=>{const tr=e.target.closest("tr[data-m]");if(tr){$("rMo").value=tr.dataset.m;setMode("m");scrollTo(0,0)}};
+$("rCsv").onclick=()=>{
+  const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"',isIn=rT==="inw",r=[isIn?"Date,Amount,Detail":"Date,Name,Department,Amount,Detail"];
+  rows().forEach(x=>r.push((isIn?[x.date,x.amt,q(x.det)]:[x.date,q(x.name),q(x.dept),x.amt,q(x.det)]).join(",")));
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([r.join("\n")],{type:"text/csv"}));a.download="report-"+(isIn?"received":"paid")+".csv";document.body.appendChild(a);a.click();a.remove();
+};
+
+/* ---------- Work list + Pagar patrak ---------- */
+const LOCKMSG="This payment belongs to a salary period already ticked Paid in Pagar patrak. Un-tick Paid there to change it.";
+const nrm=s=>(s||"").trim().toLowerCase();
+const pkey=(d,c)=>c==="half"?d.slice(0,7)+(+d.slice(8,10)<=15?"-1":"-2"):d.slice(0,7);
+function nextPk(k){const[y,m,h]=k.split("-").map(Number);if(h===1)return y+"-"+String(m).padStart(2,"0")+"-2";const ny=m===12?y+1:y,n2=m===12?1:m+1;return ny+"-"+String(n2).padStart(2,"0")+(h?"-1":"")}
+function plabel(k){return k.length>7?mlabel(k.slice(0,7))+(k.endsWith("-1")?" · 1st half":" · 2nd half"):mlabel(k)}
+function known(){const m=new Map();[...live("ppl"),...live("ops")].forEach(o=>{const k=nrm(o.name)+"|"+nrm(o.dept);if(!m.has(k))m.set(k,o)});return [...m.values()]}
+function ensureOp(n,d){if(!live("ops").some(o=>nrm(o.name)===nrm(n)&&nrm(o.dept)===nrm(d))){const po={name:n,dept:d};po.id=oid(po);put("ops",po)}}
+function findPerson(n,d){const ps=live("ppl").filter(p=>nrm(p.name)===nrm(n));if(!ps.length)return null;return ps.find(p=>nrm(p.dept)===nrm(d))||(!nrm(d)&&ps.length===1?ps[0]:null)}
+const payGet=(pid,k)=>Object.assign({id:pid+"_"+k,pid,pk:k,qty:0,khot:0,paid:false},S.pay.find(x=>x.id===pid+"_"+k&&!x.d));
+const isPaid=(pid,k)=>!!payGet(pid,k).paid;
+function assign(e){const p=findPerson(e.name,e.dept);if(!p){delete e.pid;delete e.pk;return}let k=pkey(e.date,p.cyc),n=0;while(isPaid(p.id,k)&&n++<36)k=nextPk(k);e.pid=p.id;e.pk=k}
+function openPk(p,d){const ks=[];live("pay").forEach(r=>{if(r.pid===p.id&&!r.paid&&(+r.qty||+r.khot))ks.push(r.pk)});live("out").forEach(e=>{if(e.pid===p.id&&e.pk&&!isPaid(p.id,e.pk))ks.push(e.pk)});return ks.length?ks.sort()[0]:pkey(d,p.cyc)}
+function locked(e){if(!e||!e.name)return false;const p=e.pid?S.ppl.find(x=>x.id===e.pid):findPerson(e.name,e.dept);return !!(p&&!p.d&&isPaid(p.id,e.pk||pkey(e.date,p.cyc)))}
+const isSal=e=>tagOf(e.det)==="Salary Total Complete";
+function upadOf(p,k){return live("out").filter(e=>!isSal(e)&&(e.pid?e.pid===p.id&&e.pk===k:nrm(e.name)===nrm(p.name)&&(nrm(e.dept)===nrm(p.dept)||!nrm(e.dept))&&pkey(e.date,p.cyc)===k)).sort((a,b)=>a.date.localeCompare(b.date))}
+function calc(p,k){const r=payGet(p.id,k),q=+r.qty||0,rate=+p.rate||0,tot=p.type==="month"?rate/(p.cyc==="half"?2:1):q*rate,up=upadOf(p,k),tu=up.reduce((s,e)=>s+e.amt,0),kh=+r.khot||0;return{r,q,tot,up,tu,kh,net:tot-tu+kh}}
+
+let pMode="month",eW=null;
+const curPk=()=>pMode==="half"?$("pMo").value+"-"+$("pHalf").value:$("pMo").value;
+$("pMo").value=today().slice(0,7);$("pHalf").value=+today().slice(8)<=15?"1":"2";
+function defDate(k){const t=today();if(pkey(t,pMode)===k)return t;const y=+k.slice(0,4),m=+k.slice(5,7);return k.slice(0,7)+"-"+(k.endsWith("-1")?"15":String(new Date(y,m,0).getDate()))}
+function pagRender(){
+  const k=curPk();$("pH").hidden=pMode!=="half";
+  const ps=live("ppl").filter(p=>(p.cyc||"month")===pMode).sort((a,b)=>nrm(a.dept).localeCompare(nrm(b.dept))||nrm(a.name).localeCompare(nrm(b.name)));
+  let tP=0,tK=0,tU=0,tD=0;
+  const rows=ps.map((p,i)=>{
+    const c=calc(p,k),pd=!!c.r.paid,dis=pd?" disabled":"";
+    tP+=c.tot;tK+=c.kh;tU+=c.tu;if(pd)tD+=c.net;
+    const unit=p.type==="meter"?"Meter":p.type==="day"?"Days":"";
+    const ups=c.up.map(e=>"<div class='up'>"+dmy(e.date)+" · <b class='num'>"+fmt(e.amt)+"</b>"+(pd?"":"<button class='xp' data-act='eu' data-id='"+e.id+"' aria-label='Edit'>✎</button><button class='xp' data-act='du' data-id='"+e.id+"' aria-label='Delete'>×</button>")+"</div>").join("");
+    const add=pd?"":"<div class='up'><input class='mini d' type='date' data-ud value='"+defDate(k)+"'><input class='mini' type='number' inputmode='decimal' placeholder='₹' data-ua><button class='xp' data-act='au' data-p='"+p.id+"' aria-label='Add upad'>＋</button></div>";
+    return "<tr><td>"+(i+1)+"</td><td>"+esc(p.dept)+"</td><td>"+esc(p.name)+"</td>"+
+      "<td>"+(unit?"<input class='mini num' type='number' step='any' data-f='qty' data-p='"+p.id+"' value='"+(c.q||"")+"' placeholder='"+unit+"'"+dis+">":"–")+"</td>"+
+      "<td class='r num'>"+fmt(p.rate)+"/"+({day:"day",meter:"m",month:"mo"}[p.type]||"")+"</td><td class='r num'>"+fmt(c.tot)+"</td>"+
+      "<td><input class='mini num' type='number' step='any' data-f='khot' data-p='"+p.id+"' value='"+(c.kh||"")+"'"+dis+"></td>"+
+      "<td>"+ups+add+"</td><td class='r num out'>"+fmt(c.tu)+"</td><td class='r num'><b>"+fmt(c.net)+"</b></td>"+
+      "<td><input type='checkbox' style='width:22px;height:22px' data-tick='"+p.id+"'"+(pd?" checked":"")+" aria-label='Paid'></td></tr>"}).join("");
+  $("pTbl").innerHTML="<thead><tr><th>S.No.</th><th>Department</th><th>Name</th><th>Meter / Days</th><th class='r'>Rate</th><th class='r'>Total</th><th>Khot</th><th>Upad</th><th class='r'>Total Upad</th><th class='r'>Payable</th><th>Paid</th></tr></thead><tbody>"+(rows||"<tr><td colspan='11' class='empty'>No people with this pay cycle in the Work list yet.</td></tr>")+"</tbody>";
+  $("pT1").textContent=fmt(tP);$("pT2").textContent=fmt(tK);$("pT3").textContent=fmt(tU);$("pT4").textContent=fmt(tD);
+}
+$("pMode").onclick=e=>{const b=e.target.closest("button");if(b){pMode=b.dataset.v;mark("pMode",pMode);pagRender()}};
+$("pMo").oninput=pagRender;$("pHalf").onchange=pagRender;
+$("pTbl").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-act]");if(!b)return;const a=b.dataset.act,k=curPk();
+  if(a==="eu"){view("b");edit("out",b.dataset.id)}
+  else if(a==="du"){if(confirm("Delete this advance? It is also removed from the Cash book."))rem("out",b.dataset.id)}
+  else if(a==="au"){const p=S.ppl.find(x=>x.id===b.dataset.p),row=b.closest("div"),d=row.querySelector("[data-ud]").value,am=parseFloat(row.querySelector("[data-ua]").value);
+    if(!p||!d||!(am>0)){alert("Enter an amount and a date.");return}
+    put("out",{id:uid(),name:p.name,dept:p.dept,amt:am,date:d,det:"Advance",pid:p.id,pk:k});ensureOp(p.name,p.dept)}
+});
+$("pTbl").addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.f){const r=payGet(t.dataset.p,curPk());r[t.dataset.f]=parseFloat(t.value)||0;put("pay",r)}
+  else if(t.dataset.tick){
+    const p=S.ppl.find(x=>x.id===t.dataset.tick),k=curPk();if(!p)return;const c=calc(p,k);
+    if(t.checked){
+      if(!confirm("Mark "+p.name+" as paid for "+plabel(k)+"? Upad entries will be locked and new payments go to the next period.")){pagRender();return}
+      put("pay",Object.assign(c.r,{paid:true,pd:today()}));
+      if(c.net>0&&confirm("Also add ₹"+c.net.toLocaleString("en-IN")+" to the Cash book as “Salary Total Complete”?")){
+        put("out",{id:uid(),name:p.name,dept:p.dept,amt:c.net,date:today(),det:"Salary Total Complete",pid:p.id,pk:k});
+        live("ops").filter(o=>nrm(o.name)===nrm(p.name)&&nrm(o.dept)===nrm(p.dept)).forEach(o=>rem("ops",o.id))}
+    }else{
+      if(!confirm("Un-tick Paid? Upad entries for this period become editable again."))pagRender();
+      else put("pay",Object.assign(c.r,{paid:false}))}
+  }
+});
+
+function endW(){eW=null;$("btnW").textContent="Add person";$("cW").hidden=true;$("wName").value=$("wDept").value=$("wRate").value="";$("wType").value="day";$("wCyc").value="month"}
+function workRender(){
+  const ps=live("ppl").sort((a,b)=>nrm(a.dept).localeCompare(nrm(b.dept))||nrm(a.name).localeCompare(nrm(b.name)));
+  $("wCnt").textContent=ps.length+" people";
+  $("bW").innerHTML=ps.length?ps.map(p=>"<tr><td>"+esc(p.name)+"</td><td>"+esc(p.dept)+"</td><td class='num'>"+fmt(p.rate)+" / "+({day:"day",meter:"meter",month:"month"}[p.type]||"")+"</td><td>"+(p.cyc==="half"?"Half month":"Monthly")+"</td><td style='white-space:nowrap'><button class='xp' data-we='"+p.id+"' aria-label='Edit'>✎</button><button class='xp' data-wd='"+p.id+"' aria-label='Delete'>×</button></td></tr>").join(""):"<tr><td colspan='5' class='empty'>No people yet. Add the first person above.</td></tr>";
+  $("dlW").innerHTML=known().map(o=>"<option value='"+esc(o.name)+"'>").join("");
+}
+$("wName").oninput=()=>{const ms=known().filter(o=>nrm(o.name)===nrm($("wName").value)&&o.dept);if(ms.length===1&&!$("wDept").value)$("wDept").value=ms[0].dept};
+$("fW").onsubmit=e=>{e.preventDefault();
+  const name=$("wName").value.trim(),dept=$("wDept").value.trim(),rate=parseFloat($("wRate").value);if(!name||isNaN(rate))return;
+  if(!eW&&live("ppl").some(p=>nrm(p.name)===nrm(name)&&nrm(p.dept)===nrm(dept))){alert("This name and department is already in the Work list.");return}
+  put("ppl",{id:eW||uid(),name,dept,type:$("wType").value,rate,cyc:$("wCyc").value});endW()};
+$("cW").onclick=endW;
+$("bW").onclick=e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.we){const p=S.ppl.find(x=>x.id===b.dataset.we);if(!p)return;eW=p.id;$("wName").value=p.name;$("wDept").value=p.dept||"";$("wType").value=p.type;$("wRate").value=p.rate;$("wCyc").value=p.cyc||"month";$("btnW").textContent="Save changes";$("cW").hidden=false;$("fW").scrollIntoView({block:"center"})}
+  else if(b.dataset.wd&&confirm("Remove this person from the Work list? Past payments stay in the Cash book."))rem("ppl",b.dataset.wd)};
+
+render();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="gsiReady()"></script>
+</body>
+</html>
